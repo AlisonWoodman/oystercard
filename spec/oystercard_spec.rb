@@ -18,25 +18,14 @@ describe Oystercard do
     end
 
     it 'tops up the card with the given amount' do
-      card.top_up(ARBITRARY_TOP_UP)
-      expect(card.balance).to eq ARBITRARY_TOP_UP
-    end
-  end
-
-  describe '#deduct' do
-    before do
-      card.top_up(ARBITRARY_TOP_UP)
-    end
-    it 'deducts the fare from the card balance' do
-      card.deduct(ARBITRARY_FARE)
-      expect(card.balance).to eq(ARBITRARY_TOP_UP - ARBITRARY_FARE)
+      expect { card.top_up(ARBITRARY_TOP_UP) }.to change { card.balance }.by(ARBITRARY_TOP_UP)
     end
   end
 
   describe '#touch_in' do
     context "insufficient funds" do
       it 'raises an error if the card has insufficient funds' do
-        expect{card.touch_in}.to raise_error("Insufficient funds, please top up")
+        expect{ card.touch_in }.to raise_error("Insufficient funds, please top up")
       end
     end
     context "sufficient funds" do
@@ -49,8 +38,14 @@ describe Oystercard do
   end
 
   describe '#touch_out' do
-    before { card.touch_out }
-    it { should_not be_in_journey }
+    it 'touches out' do
+      card.touch_out
+      should_not be_in_journey
+    end
+
+    it 'deducts the fare from the card balance' do
+      expect { card.touch_out }.to change{ card.balance }.by(-described_class::MINIMUM_FARE)
+    end
   end
 
   describe '#in_journey?' do
