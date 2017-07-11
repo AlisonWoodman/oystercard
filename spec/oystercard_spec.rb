@@ -2,8 +2,12 @@ require 'oystercard'
 
 describe Oystercard do
   subject(:card) { described_class.new }
+  let(:station) {double(:station)}
+  let(:loaded_card) { described_class.new}
+
   ARBITRARY_TOP_UP = 10
   ARBITRARY_FARE = 2
+  before {loaded_card.top_up(ARBITRARY_TOP_UP)}
 
   describe '#initialize' do
     it 'creates a card with a zero balance' do
@@ -23,17 +27,19 @@ describe Oystercard do
   end
 
   describe '#touch_in' do
+    context "sufficient funds" do
+      before {loaded_card.touch_in(:station)}
+      it 'card is set to in journey' do
+        expect(loaded_card).to be_in_journey
+      end
+      it 'records entry station upon' do
+        expect(loaded_card.entry_station).to eq :station
+    end
+  end
     context "insufficient funds" do
       it 'raises an error if the card has insufficient funds' do
-        expect{ card.touch_in }.to raise_error("Insufficient funds, please top up")
+        expect{ card.touch_in(:station) }.to raise_error("Insufficient funds, please top up")
       end
-    end
-    context "sufficient funds" do
-      before do
-        card.top_up(described_class::MINIMUM_BALANCE)
-        card.touch_in
-      end
-      it { should be_in_journey }
     end
   end
 
@@ -45,6 +51,12 @@ describe Oystercard do
 
     it 'deducts the fare from the card balance' do
       expect { card.touch_out }.to change{ card.balance }.by(-described_class::MINIMUM_FARE)
+    end
+
+    it 'sets entry_station to nil' do
+      loaded_card.touch_in(:station)
+      loaded_card.touch_out
+      expect(loaded_card.entry_station).to eq nil
     end
   end
 
