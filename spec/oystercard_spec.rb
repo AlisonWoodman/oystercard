@@ -45,17 +45,17 @@ describe Oystercard do
 
   describe '#touch_out' do
     it 'touches out' do
-      card.touch_out
+      card.touch_out(:station)
       should_not be_in_journey
     end
 
     it 'deducts the fare from the card balance' do
-      expect { card.touch_out }.to change{ card.balance }.by(-described_class::MINIMUM_FARE)
+      expect { card.touch_out(:station) }.to change{ card.balance }.by(-described_class::MINIMUM_FARE)
     end
 
     it 'sets entry_station to nil' do
       loaded_card.touch_in(:station)
-      loaded_card.touch_out
+      loaded_card.touch_out(:station)
       expect(loaded_card.entry_station).to eq nil
     end
   end
